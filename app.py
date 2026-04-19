@@ -14,12 +14,13 @@ with st.sidebar:
     st.subheader("1. Thông tin Tiêu đề (Header)")
     use_header = st.checkbox("Thêm bảng tiêu đề", value=True)
     if use_header:
-        ubnd = st.text_input("UBND/SỞ GD&ĐT", value="UBND XÃ TÂY PHÚ")
-        truong = st.text_input("Trường", value="TRƯỜNG THCS TÂY PHÚ")
+        # Đã cập nhật thông tin mặc định theo yêu cầu của thầy Nguyễn Thiện
+        ubnd = st.text_input("UBND/SỞ GD&ĐT", value="UBND XÃ VĨNH LẠI")
+        truong = st.text_input("Trường", value="TRƯỜNG THCS ỨNG HÒE")
         ky_thi = st.text_input("Kỳ Thi", value="ĐỀ KIỂM TRA GIỮA KỲ I")
-        mon_thi = st.text_input("Môn Thi", value="TOÁN 9")
-        thoi_gian = st.text_input("Thời gian", value="60 phút")
-        nam_hoc = st.text_input("Năm học", value="2024 - 2025")
+        mon_thi = st.text_input("Môn Thi", value="KHTN 7")
+        thoi_gian = st.text_input("Thời gian", value="90 phút")
+        nam_hoc = st.text_input("Năm học", value="2025 - 2026")
 
     st.subheader("2. Tùy chọn Trộn & Lấy Ngẫu Nhiên")
     num_versions = st.number_input("Số lượng đề mới muốn tạo:", min_value=1, max_value=24, value=4, step=1)
@@ -30,6 +31,10 @@ with st.sidebar:
     even_split = st.checkbox("⚖️ Tỉ lệ chia đều câu hỏi từ các file nguồn", value=True, help="Nếu bật, hệ thống sẽ lấy số lượng câu hỏi bằng nhau từ các đề bạn tải lên. Nếu 1 file thiếu, sẽ tự động bốc bù từ file khác.")
     
     st.info("💡 Lưu ý: Hệ thống sẽ lấy cấu trúc (số câu mỗi Phần) theo File đầu tiên bạn tải lên làm chuẩn.")
+    
+    # --- THÔNG TIN TÁC GIẢ ---
+    st.markdown("---")
+    st.success("👨‍💻 **Tác giả:** Nguyễn Thiện\n\n📞 **SĐT/Zalo:** 0988250112")
 
 st.markdown("<h1 style='text-align: center; color: #1f4e79;'>📚 HỆ THỐNG TỔNG HỢP & TRỘN ĐỀ ĐA NGUỒN</h1>", unsafe_allow_html=True)
 st.markdown("---")
@@ -43,7 +48,7 @@ with st.expander("📖 HƯỚNG DẪN SỬ DỤNG & TẢI FILE MẪU", expanded=
         - **Phần I & Phần II:** **CHỈ CẦN** Gạch chân hoặc Tô đỏ ký hiệu chữ cái đầu tiên (VD: <u>A.</u>, <u>a)</u>) của phương án ĐÚNG. **Tuyệt đối không tô đỏ công thức Toán (MathType)** để tránh lỗi.
         - **Phần III (Trả lời ngắn):** Xuống dòng gõ `Đáp án: [Kết quả]` hoặc `Đáp số: [Kết quả]`. KHÔNG CẦN tô màu đỏ. Hệ thống sẽ tự bốc đáp án và tự động xóa sạch dòng này trên đề in của học sinh.
         - **Nhóm dùng chung:** Kẹp các câu hỏi chung 1 hình ảnh/đoạn văn giữa thẻ **@BẮT ĐẦU DÙNG CHUNG@** và **@KẾT THÚC DÙNG CHUNG@**.
-        """)
+        """, unsafe_allow_html=True)
     with col_btn:
         st.markdown("<br>", unsafe_allow_html=True)
         sample_file_path = "ĐỀ MẪU TRỘN ĐỀ ĐA NĂNG.docx"
