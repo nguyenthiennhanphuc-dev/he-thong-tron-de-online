@@ -24,7 +24,17 @@ with st.sidebar:
 
     st.subheader("2. Tùy chọn Trộn & Lấy Ngẫu Nhiên")
     num_versions = st.number_input("Số lượng đề mới muốn tạo:", min_value=1, max_value=24, value=4, step=1)
-    shuffle_q = st.checkbox("Trộn vị trí Câu hỏi", value=True)
+    q_mode_label = st.radio(
+        "Chế độ sắp xếp Câu hỏi:",
+        options=["🔀 Trộn ngẫu nhiên", "🔄 Đảo ngược thứ tự (VD: 12 → 1)", "📌 Giữ nguyên thứ tự gốc"],
+        index=0
+    )
+    q_sort_mode_map = {
+        "🔀 Trộn ngẫu nhiên": "random",
+        "🔄 Đảo ngược thứ tự (VD: 12 → 1)": "reverse",
+        "📌 Giữ nguyên thứ tự gốc": "keep"
+    }
+    q_sort_mode = q_sort_mode_map[q_mode_label]
     shuffle_a = st.checkbox("Trộn vị trí Đáp án (A,B,C,D)", value=True)
     
     # --- TÍNH NĂNG CHIA ĐỀU CÂU HỎI ---
@@ -74,7 +84,7 @@ else:
                 zip_result, master_key_result = process_and_shuffle_multi(
                     files=uploaded_files,
                     num_versions=num_versions,
-                    shuffle_q=shuffle_q,
+                    q_sort_mode=q_sort_mode,
                     shuffle_a=shuffle_a,
                     even_split=even_split
                 )

@@ -304,10 +304,11 @@ def process_question_block(q_blocks, q_num, shuffle_a):
             
     return correct_label, elements_to_keep
 
-def allocate_questions_fairly(pool, needed):
+def allocate_questions_fairly(pool, needed, randomize=True):
     """
     Thuật toán chia đều số lượng câu hỏi từ nhiều nguồn (files) khác nhau.
     Có khả năng bù trừ (nếu file A thiếu câu thì bốc bù từ file B).
+    randomize=True: bốc ngẫu nhiên. False: lấy theo thứ tự gốc trong file.
     """
     pool_by_src = {}
     for item in pool:
@@ -328,8 +329,12 @@ def allocate_questions_fairly(pool, needed):
     for src in sources:
         quota[src] = base
     # Phân phát số dư (nếu chia không hết)
-    for src in random.sample(sources, rem):
-        quota[src] += 1
+    if randomize:
+        for src in random.sample(sources, rem):
+            quota[src] += 1
+    else:
+        for i in range(rem):
+            quota[sources[i]] += 1
         
     # Bước 2: Bù trừ (Nếu có file không đủ số lượng quota yêu cầu)
     while True:
@@ -350,18 +355,27 @@ def allocate_questions_fairly(pool, needed):
         add_rem = shortfall % len(active_sources)
         for src in active_sources:
             quota[src] += add_base
-        for src in random.sample(active_sources, add_rem):
-            quota[src] += 1
+        if randomize:
+            for src in random.sample(active_sources, add_rem):
+                quota[src] += 1
+        else:
+            for i in range(add_rem):
+                quota[active_sources[i]] += 1
 
-    # Bước 3: Bốc ngẫu nhiên dựa trên Quota đã chốt
+    # Bước 3: Bốc câu hỏi dựa trên Quota đã chốt
     selected_items = []
     for src in sources:
         if quota[src] > 0:
-            selected_items.extend(random.sample(pool_by_src[src], min(quota[src], len(pool_by_src[src]))))
+            count = min(quota[src], len(pool_by_src[src]))
+            if randomize:
+                selected_items.extend(random.sample(pool_by_src[src], count))
+            else:
+                # Lấy theo thứ tự gốc trong file (không xáo trộn)
+                selected_items.extend(pool_by_src[src][:count])
             
     return selected_items
 
-def process_and_shuffle_multi(files, num_versions=4, shuffle_q=True, shuffle_a=True, even_split=True):
+def process_and_shuffle_multi(files, num_versions=4, q_sort_mode="random", shuffle_a=True, even_split=True):
     merged_stream = merge_and_track_files(files)
     doc = Document(merged_stream)
     sections, outro = extract_sections_xml(doc)
@@ -409,12 +423,21 @@ def process_and_shuffle_multi(files, num_versions=4, shuffle_q=True, shuffle_a=T
                 
                 # ------ GỌI THUẬT TOÁN CHIA ĐỀU TẠI ĐÂY ------
                 actual_needed = min(needed, len(pool))
+                randomize = (q_sort_mode == "random")
                 if even_split:
-                    selected_items = allocate_questions_fairly(pool, actual_needed)
+                    selected_items = allocate_questions_fairly(pool, actual_needed, randomize=randomize)
                 else:
-                    selected_items = random.sample(pool, actual_needed)
+                    if randomize:
+                        selected_items = random.sample(pool, actual_needed)
+                    else:
+                        # Lấy theo thứ tự gốc trong file (không xáo trộn)
+                        selected_items = pool[:actual_needed]
                 
-                if shuffle_q: random.shuffle(selected_items)
+                if q_sort_mode == "random":
+                    random.shuffle(selected_items)
+                elif q_sort_mode == "reverse":
+                    selected_items.reverse()
+                # Nếu là "keep" thì giữ nguyên thứ tự gốc
                 # ----------------------------------------------
                 
                 for item in selected_items:
@@ -428,9 +451,12 @@ def process_and_shuffle_multi(files, num_versions=4, shuffle_q=True, shuffle_a=T
                     elif item["type"] == "g":
                         for p in item["data"]["intro"]: elements_to_keep.append(copy.deepcopy(p._element))
                         group_qs = item["data"]["questions"]
-                        if shuffle_q:
+                        if q_sort_mode == "random":
                             group_qs = copy.deepcopy(group_qs)
                             random.shuffle(group_qs)
+                        elif q_sort_mode == "reverse":
+                            group_qs = copy.deepcopy(group_qs)
+                            group_qs.reverse()
                         for q_blocks in group_qs:
                             correct_label, els = process_question_block(q_blocks, q_count, shuffle_a)
                             elements_to_keep.extend(els)
